@@ -147,7 +147,6 @@ and quotes. The main functions are parse-csv and write-csv."}
             ;; Skip past the ending quote and return the field.
             (== c quote-char)
               (do (.skip reader 1) ;; Skip past that quote character.
-                  (prn (.toString field-str))
                   (.toString field-str))
             :else
               (do (.appendCodePoint field-str (.read reader))
