@@ -14,18 +14,18 @@
   (is (= [["a" "b" "c"]] (parse-csv (StringReader. "a,b,c"))))
   (is (= [["" ""]] (parse-csv (StringReader. ","))))
   (is (= [] (parse-csv (StringReader. ""))))
-  (is (= [["First", "Second"]] (parse-csv
+  (is (= [["First" "Second"]] (parse-csv
                                 (reader (.toCharArray "First,Second"))))))
 
 (deftest quoting
   (is (= [[""]] (parse-csv "\"")))
   (is (= [["\""]] (parse-csv "\"\"\"")))
-  (is (= [["Before", "\"","After"]] (parse-csv "Before,\"\"\"\",After")))
-  (is (= [["Before", "", "After"]] (parse-csv "Before,\"\",After")))
-  (is (= [["", "start&end", ""]] (parse-csv "\"\",\"start&end\",\"\"")))
-  (is (= [[",", "\"", ",,", ",,,"]]
+  (is (= [["Before" "\"" "After"]] (parse-csv "Before,\"\"\"\",After")))
+  (is (= [["Before" "" "After"]] (parse-csv "Before,\"\",After")))
+  (is (= [["" "start&end" ""]] (parse-csv "\"\",\"start&end\",\"\"")))
+  (is (= [["," "\"" ",," ",,,"]]
          (parse-csv "\",\",\"\"\"\",\",,\",\",,,\"")))
-  (is (= [["quoted", "\",\"", "comma"]]
+  (is (= [["quoted" "\",\"" "comma"]]
          (parse-csv "quoted,\"\"\",\"\"\",comma")))
   (is (= [["Hello"]] (parse-csv "\"Hello\"")))
   (is (thrown? Exception (dorun (parse-csv "\"Hello\" \"Hello2\""))))
@@ -36,12 +36,12 @@
   (is (= [["Hello"]] (parse-csv "\"Hello"))))
 
 (deftest newlines
-  (is (= [["test1","test2"] ["test3","test4"]]
+  (is (= [["test1" "test2"] ["test3" "test4"]]
          (parse-csv "test1,test2\ntest3,test4")))
-  (is (= [["test1","test2"] ["test3","test4"]]
+  (is (= [["test1" "test2"] ["test3" "test4"]]
          (parse-csv "test1,test2\r\ntest3,test4")))
-  (is (= [["embedded","line\nbreak"]] (parse-csv "embedded,\"line\nbreak\"")))
-  (is (= [["embedded", "line\r\nbreak"]]
+  (is (= [["embedded" "line\nbreak"]] (parse-csv "embedded,\"line\nbreak\"")))
+  (is (= [["embedded" "line\r\nbreak"]]
          (parse-csv "embedded,\"line\r\nbreak\""))))
 
 (deftest writing
@@ -70,41 +70,41 @@
                     :force-quote true))))
 
 (deftest alternate-delimiters
-  (is (= [["First", "Second"]]
-           (parse-csv "First\tSecond" :delimiter \tab)))
+  (is (= [["First" "Second"]]
+         (parse-csv "First\tSecond" :delimiter \tab)))
   (is (= "First\tSecond\n"
-         (write-csv [["First", "Second"]] :delimiter \tab)))
+         (write-csv [["First" "Second"]] :delimiter \tab)))
   (is (= "First\tSecond,Third\n"
-         (write-csv [["First", "Second,Third"]] :delimiter \tab)))
+         (write-csv [["First" "Second,Third"]] :delimiter \tab)))
   (is (= "First\t\"Second\tThird\"\n"
-         (write-csv [["First", "Second\tThird"]] :delimiter \tab))))
+         (write-csv [["First" "Second\tThird"]] :delimiter \tab))))
 
 (deftest alternate-quote-char
-  (is (= [["a", "b", "c"]]
-           (parse-csv "a,|b|,c" :quote-char \|)))
-  (is (= [["a", "b|c", "d"]]
-           (parse-csv "a,|b||c|,d" :quote-char \|)))
-  (is (= [["a", "b\"\nc", "d"]]
-           (parse-csv "a,|b\"\nc|,d" :quote-char \|)))
+  (is (= [["a" "b" "c"]]
+         (parse-csv "a,|b|,c" :quote-char \| :escape-char \|)))
+  (is (= [["a" "b|c" "d"]]
+         (parse-csv "a,|b||c|,d" :quote-char \| :escape-char \|)))
+  (is (= [["a" "b\"\nc" "d"]]
+         (parse-csv "a,|b\"\nc|,d" :quote-char \| :escape-char \|)))
   (is (= "a,|b||c|,d\n"
-         (write-csv [["a", "b|c", "d"]] :quote-char \|)))
+         (write-csv [["a" "b|c" "d"]] :quote-char \| :escape-char \|)))
   (is (= "a,|b\nc|,d\n"
-         (write-csv [["a", "b\nc", "d"]] :quote-char \|)))
+         (write-csv [["a" "b\nc" "d"]] :quote-char \| :escape-char \|)))
   (is (= "a,b\"c,d\n"
-         (write-csv [["a", "b\"c", "d"]] :quote-char \|))))
+         (write-csv [["a" "b\"c" "d"]] :quote-char \| :escape-char \|))))
 
 (deftest strictness
   (is (thrown? Exception (dorun (parse-csv "a,b,c,\"d" :strict true))))
   (is (thrown? Exception (dorun (parse-csv "a,b,c,d\"e" :strict true))))
-  (is (= [["a","b","c","d"]]
-           (parse-csv "a,b,c,\"d" :strict false)))
-  (is (= [["a","b","c","d"]]
-           (parse-csv "a,b,c,\"d\"" :strict true)))
-  (is (= [["a","b","c","d\""]]
-           (parse-csv "a,b,c,d\"" :strict false)))
+  (is (= [["a" "b" "c" "d"]]
+         (parse-csv "a,b,c,\"d" :strict false)))
+  (is (= [["a" "b" "c" "d"]]
+         (parse-csv "a,b,c,\"d\"" :strict true)))
+  (is (= [["a" "b" "c" "d\""]]
+         (parse-csv "a,b,c,d\"" :strict false)))
   (is (= [["120030" "BLACK COD FILET MET VEL \"MSC\"" "KG" "0" "1"]]
-           (parse-csv "120030;BLACK COD FILET MET VEL \"MSC\";KG;0;1"
-                      :strict false :delimiter \;))))
+         (parse-csv "120030;BLACK COD FILET MET VEL \"MSC\";KG;0;1"
+                    :strict false :delimiter \;))))
 
 (deftest reader-cases
   ;; reader will be created and closed in with-open, but used outside.
@@ -114,7 +114,7 @@
                         (parse-csv sr))))))
 
 (deftest custom-eol
-    ;; Test the use of this option.
+  ;; Test the use of this option.
   (is (= [["a" "b"] ["c" "d"]] (parse-csv "a,b\rc,d" :end-of-line "\r")))
   (is (= [["a" "b"] ["c" "d"]] (parse-csv "a,babcc,d" :end-of-line "abc")))
   ;; The presence of an end-of-line option turns off the parsing of \n and \r\n
@@ -126,6 +126,6 @@
   (is (= [["a" "b\r"] ["c" "d"]] (parse-csv "a,\"b\r\"\rc,d"
                                             :end-of-line "\r")))
   (is (= [["a" "bHELLO"] ["c" "d"]] (parse-csv "a,\"bHELLO\"HELLOc,d"
-                                            :end-of-line "HELLO")))
+                                               :end-of-line "HELLO")))
   (is (= [["a" "b\r"] ["c" "d"]] (parse-csv "a,|b\r|\rc,d"
                                             :end-of-line "\r" :quote-char \|))))

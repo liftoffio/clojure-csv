@@ -5,27 +5,27 @@
         clojure.java.io
         clojure-csv.core))
 
-(def default-options {:delimiter \, :quote-char \"
+(def default-options {:delimiter \, :quote-char \" :escape-char \"
                       :strict false :end-of-line nil})
 
 (deftest eol-at-reader-pos?
   ;; Testing the private function to check for EOLs
   (is (= true (#'clojure-csv.core/eol-at-reader-pos? (StringReader. "\n") nil)))
   (is (= true (#'clojure-csv.core/eol-at-reader-pos? (StringReader. "\r\n")
-                                                     nil)))
+               nil)))
   (is (= true (#'clojure-csv.core/eol-at-reader-pos? (StringReader. "\nabc")
-                                                     nil)))
+               nil)))
   (is (= true (#'clojure-csv.core/eol-at-reader-pos? (StringReader. "\r\nabc")
-                                                     nil)))
+               nil)))
   (is (= false (#'clojure-csv.core/eol-at-reader-pos? (StringReader. "\r\tabc")
-                                                      nil)))
+                nil)))
   ;; Testing for user-specified EOLs
   (is (= true (#'clojure-csv.core/eol-at-reader-pos? (StringReader. "abc")
-                                                     "abc")))
+               "abc")))
   (is (= true (#'clojure-csv.core/eol-at-reader-pos? (StringReader. "abcdef")
-                                                     "abc")))
+               "abc")))
   (is (= false (#'clojure-csv.core/eol-at-reader-pos? (StringReader. "ab")
-                                                      "abc"))))
+                "abc"))))
 
 (deftest skip-past-eol
   (is (= (int \c)
@@ -75,37 +75,38 @@
 (deftest escaped-quote-at-reader-pos?
   (is (= true (#'clojure-csv.core/escaped-quote-at-reader-pos?
                (StringReader. "\"\"")
-               (int \"))))
+               (int \") (int \"))))
   (is (= true (#'clojure-csv.core/escaped-quote-at-reader-pos?
                (StringReader. "\"\"abc")
-               (int \"))))
+               (int \") (int \"))))
   (is (= false (#'clojure-csv.core/escaped-quote-at-reader-pos?
                 (StringReader. "\"abc")
-                (int \"))))
+                (int \") (int \"))))
   (is (= false (#'clojure-csv.core/escaped-quote-at-reader-pos?
                 (StringReader. "abc")
-                (int \")))))
+                (int \") (int \")))))
 
 (deftest read-quoted-field
-  (let [{:keys [delimiter quote-char strict]} default-options
+  (let [{:keys [delimiter quote-char escape-char strict]} default-options
         delimiter (int delimiter)
-        quote-char (int quote-char)]
+        quote-char (int quote-char)
+        escape-char (int escape-char)]
     (is (= "abc" (#'clojure-csv.core/read-quoted-field
                   (StringReader. "\"abc\"")
-                  delimiter quote-char strict)))
+                  delimiter quote-char escape-char strict)))
     (is (= "abc" (#'clojure-csv.core/read-quoted-field
                   (StringReader. "\"abc\",def")
-                  delimiter quote-char strict)))
+                  delimiter quote-char escape-char strict)))
     (is (= "ab\"c" (#'clojure-csv.core/read-quoted-field
                     (StringReader. "\"ab\"\"c\"")
-                    delimiter quote-char strict)))
+                    delimiter quote-char escape-char strict)))
     (is (= "ab\nc" (#'clojure-csv.core/read-quoted-field
                     (StringReader. "\"ab\nc\"")
-                    delimiter quote-char strict)))
+                    delimiter quote-char escape-char strict)))
     (is (= "ab,c" (#'clojure-csv.core/read-quoted-field
                    (StringReader. "\"ab,c\"")
-                   delimiter quote-char strict)))
+                   delimiter quote-char escape-char strict)))
     (is (thrown? java.lang.Exception
                  (#'clojure-csv.core/read-quoted-field
                   (StringReader. "\"abc")
-                  delimiter quote-char true)))))
+                  delimiter quote-char escape-char true)))))
