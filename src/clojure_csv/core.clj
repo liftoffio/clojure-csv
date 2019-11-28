@@ -11,6 +11,8 @@ and quotes. The main functions are parse-csv and write-csv."}
 ;; Utilities
 ;;
 
+(set! *warn-on-reflection* true)
+
 (defn- reader-peek
   ^long [^Reader reader]
   (.mark reader 1)
@@ -137,7 +139,7 @@ and quotes. The main functions are parse-csv and write-csv."}
             ;; If we see two quote chars in a row, only add one of them to the
             ;; output, skip both of the characters, and continue.
             (escaped-quote-at-reader-pos? reader quote-char escape-char)
-              (do (.appendCodePoint field-str quote-char)
+              (do (.append field-str (char quote-char))
                   (.skip reader 2)
                   (recur (reader-peek reader)))
             ;; Otherwise, if we see a single quote char, this field has ended.
@@ -293,3 +295,5 @@ and quotes. The main functions are parse-csv and write-csv."}
       (.toString csv-string)
       (recur (.append csv-string (str (first quoted-table) end-of-line))
              (rest quoted-table)))))
+
+(set! *warn-on-reflection* false)
